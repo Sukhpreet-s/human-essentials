@@ -4,8 +4,9 @@ RSpec.describe CustomDeviseMailer, type: :mailer do
     let(:mail) { described_class.invitation_instructions(user, SecureRandom.uuid) }
 
     context "when partner is invited" do
+      let(:organization) { create(:organization, invitation_text: "Custom invitation message") }
       let(:partner) do
-        partner = create(:partner, :uninvited)
+        partner = create(:partner, :uninvited, organization: organization)
         partner.primary_user.delete
         partner.reload
         partner
@@ -18,6 +19,10 @@ RSpec.describe CustomDeviseMailer, type: :mailer do
       it "invites to primary user" do
         expect(mail.subject).to eq("You've been invited to be a partner with #{user.partner.organization.name}")
         expect(mail.html_part.body).to include("You've been invited to become a partner with <strong>#{user.partner.organization.name}!</strong>")
+      end
+
+      it "shows the custom partner invitation message" do
+        expect(mail.html_part.body).to include(user.partner.organization.invitation_text)
       end
     end
 
